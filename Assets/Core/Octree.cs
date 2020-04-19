@@ -22,7 +22,7 @@ namespace wanderer
 
         public void Handle(Bounds bounds, IProjectorHandle handle, string meshName = null)
         {
-            List<TriangleVertices> triangles = new List<TriangleVertices>();
+            List<TriangleVertices> triangles = ListPool<TriangleVertices>.Get();
             //索取所有的三角形
             GetTriangles(bounds, this, triangles);
             //转换成模式
@@ -61,6 +61,7 @@ namespace wanderer
             mesh.SetVertices(vertices);
             mesh.SetUVs(0, uvs);
             mesh.SetTriangles(indexs, 0);
+            ListPool<TriangleVertices>.Release(triangles);
             //回调
             handle.ProjectorHandle(mesh);
         }

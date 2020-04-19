@@ -52,8 +52,6 @@ namespace wanderer
                     _octreeConfig.OctreeAssetPath = AssetDatabase.GetAssetPath(Selection.activeObject);
                     _octreeConfig.MaxBounds = _octree.Root.Bounds;
                     _octreeConfig.MaxDepth = _octree.MaxDepth;
-
-
                 }
             }
 
@@ -135,10 +133,12 @@ namespace wanderer
             if (GUILayout.Button(hasOctree ? "Rebuild Octree" : "Build Octree") && _octreeConfig.MaxBounds.size != Vector3.zero)
             {
                 List<TriangleVertices> triangles = GetTriangles(FindObjectsWithLayer<MeshFilter>(_octreeConfig.Mask));
+                //  triangles.AddRange(GetTriangles(FindObjectsWithLayer<Terrain>(_octreeConfig.Mask)));
 
                 if (!hasOctree)
                     _octree = ScriptableObject.CreateInstance<Octree>();
                 _octree.Setup(_octreeConfig.MaxBounds, _octreeConfig.MaxDepth, triangles);
+                ListPool<TriangleVertices>.Release(triangles);
 
                 if (!hasOctree)
                 {
@@ -180,7 +180,7 @@ namespace wanderer
         /// <returns></returns>
         List<TriangleVertices> GetTriangles(List<MeshFilter> meshFilters)
         {
-            List<TriangleVertices> triangles = new List<TriangleVertices>();
+            List<TriangleVertices> triangles = ListPool<TriangleVertices>.Get();
 
             foreach (var meshFilter in meshFilters)
             {
@@ -201,6 +201,19 @@ namespace wanderer
 
             return triangles;
         }
+
+        // List<TriangleVertices> GetTriangles(List<Terrain> terrains)
+        // {
+        //     List<TriangleVertices> triangles = new List<TriangleVertices>();
+        //     foreach (var terrain in terrains)
+        //     {
+        //         Vector3 vertex0 = meshFilter.transform.localToWorldMatrix.MultiplyPoint(mesh.vertices[indices[m]]);
+        //         Vector3 vertex1 = meshFilter.transform.localToWorldMatrix.MultiplyPoint(mesh.vertices[indices[m + 1]]);
+        //         Vector3 vertex2 = meshFilter.transform.localToWorldMatrix.MultiplyPoint(mesh.vertices[indices[m + 2]]);
+        //         triangles.Add(new TriangleVertices(vertex0, vertex1, vertex2));
+        //     }
+        //     return triangles;
+        // }
 
         /// <summary>
         /// 创建模型的GameObject
