@@ -7,6 +7,7 @@ using Unity.Jobs;
 using Unity.Collections;
 using System.IO;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace wanderer
 {
@@ -110,8 +111,22 @@ namespace wanderer
             GUILayout.Label("Scene Octree", EditorStyles.boldLabel);
 
             GUILayout.BeginVertical("HelpBox");
-
+            Octree octree = (Octree)EditorGUILayout.ObjectField("Octree", _octree, typeof(Octree), false);
+            if (octree != _octree)
+            {
+                _octree = octree;
+                _octreeConfig.OctreeAssetPath = AssetDatabase.GetAssetPath(octree);
+                _octreeConfig.MaxBounds = _octree.Root.Bounds;
+                _octreeConfig.MaxDepth = _octree.MaxDepth;
+                _octreeDebug.Octree = _octree;
+            }
+            bool hasOctree = (_octree != null);
+            if (hasOctree)
+            {
+                EditorGUILayout.LabelField("OctreeAssetPath", _octreeConfig.OctreeAssetPath);
+            }
             _octreeConfig.Mask = EditorGUILayout.MaskField("Mask", _octreeConfig.Mask, InternalEditorUtility.layers);
+
             GUILayout.BeginVertical("HelpBox");
             _octreeConfig.MaxBounds = EditorGUILayout.BoundsField("Bounds", _octreeConfig.MaxBounds);
             // _boundsCollider = (Collider)EditorGUILayout.ObjectField("BoundsCollider", _boundsCollider, typeof(Collider), true);
@@ -121,12 +136,6 @@ namespace wanderer
             // }
             GUILayout.EndVertical();
             _octreeConfig.MaxDepth = EditorGUILayout.IntField("MaxDepth", _octreeConfig.MaxDepth);
-            bool hasOctree = (_octree != null);
-            if (hasOctree)
-            {
-                EditorGUILayout.LabelField("OctreeAssetPath", _octreeConfig.OctreeAssetPath);
-            }
-            EditorGUILayout.ObjectField("Octree", _octree, typeof(Octree), false);
 
             GUILayout.EndVertical();
             GUILayout.Space(5);
@@ -147,6 +156,7 @@ namespace wanderer
                     if (!string.IsNullOrEmpty(_octreeConfig.OctreeAssetPath))
                     {
                         AssetDatabase.CreateAsset(_octree, _octreeConfig.OctreeAssetPath);
+                        _octreeDebug.Octree = _octree;
                     }
                     else
                     {
@@ -202,18 +212,27 @@ namespace wanderer
             return triangles;
         }
 
-        // List<TriangleVertices> GetTriangles(List<Terrain> terrains)
-        // {
-        //     List<TriangleVertices> triangles = new List<TriangleVertices>();
-        //     foreach (var terrain in terrains)
-        //     {
-        //         Vector3 vertex0 = meshFilter.transform.localToWorldMatrix.MultiplyPoint(mesh.vertices[indices[m]]);
-        //         Vector3 vertex1 = meshFilter.transform.localToWorldMatrix.MultiplyPoint(mesh.vertices[indices[m + 1]]);
-        //         Vector3 vertex2 = meshFilter.transform.localToWorldMatrix.MultiplyPoint(mesh.vertices[indices[m + 2]]);
-        //         triangles.Add(new TriangleVertices(vertex0, vertex1, vertex2));
-        //     }
-        //     return triangles;
-        // }
+        List<TriangleVertices> GetTriangles(List<Terrain> terrains)
+        {
+            List<TriangleVertices> triangles = new List<TriangleVertices>();
+            Vector3[] vertices = new Vector3[4];
+            foreach (var terrain in terrains)
+            {
+                int with = terrain.terrainData.heightmapResolution - 1;
+                for (int i = 0; i < with; i++)
+                {
+                    for (int j = 0; j < with; j++)
+                    {
+                        //  vertices[0].x=terrain.terrainData.Get
+                    }
+                }
+                // Vector3 vertex0 = meshFilter.transform.localToWorldMatrix.MultiplyPoint(mesh.vertices[indices[m]]);
+                // Vector3 vertex1 = meshFilter.transform.localToWorldMatrix.MultiplyPoint(mesh.vertices[indices[m + 1]]);
+                // Vector3 vertex2 = meshFilter.transform.localToWorldMatrix.MultiplyPoint(mesh.vertices[indices[m + 2]]);
+                // triangles.Add(new TriangleVertices(vertex0, vertex1, vertex2));
+            }
+            return triangles;
+        }
 
         /// <summary>
         /// 创建模型的GameObject
@@ -227,8 +246,6 @@ namespace wanderer
             Vector3 startPos = new Vector3(_octreeConfig.MaxBounds.min.x + halfSize, _octreeConfig.MaxBounds.center.y, _octreeConfig.MaxBounds.min.z + halfSize);
             Vector3 projectorSize = new Vector3(size, _octreeConfig.MaxBounds.size.y, size);
             //初始化 projectorBounds
-            //   Bounds projectorBounds = new Bounds(startPos, projectorSize);
-
             for (int i = 0; i < _octreeConfig.Rows; i++)
             {
                 for (int j = 0; j < _octreeConfig.Columns; j++)
@@ -248,11 +265,6 @@ namespace wanderer
             }
         }
 
-        private void MakeMesh()
-        {
-
-        }
-
         /// <summary>
         /// 查找所有的物体
         /// </summary>
@@ -265,12 +277,11 @@ namespace wanderer
             T[] allObjects = GameObject.FindObjectsOfType<T>();
             foreach (var item in allObjects)
             {
-                int layer = item.gameObject.layer;
-                if (mask == -1 || layer == (layer ^ mask))
+                int layer = 1 << item.gameObject.layer;
+                if (mask == -1 || layer == (layer & mask))
                 {
                     objects.Add(item);
                 }
-
             }
             return objects;
         }

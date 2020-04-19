@@ -1,1 +1,1 @@
-{"OctreeAssetPath":"Assets/octree.asset","Mask":-1,"MaxBounds":{"m_Center":{"x":50.0,"y":5.0,"z":50.0},"m_Extent":{"x":50.0,"y":25.0,"z":50.0}},"MaxDepth":5,"Rows":20,"Columns":20,"ProjectorSize":5,"ProjectorMaterial":{"instanceID":-16492}}
+{"OctreeAssetPath":"Assets/octree002.asset","Mask":1,"MaxBounds":{"m_Center":{"x":50.0,"y":5.0,"z":50.0},"m_Extent":{"x":50.0,"y":25.0,"z":50.0}},"MaxDepth":6,"Rows":20,"Columns":20,"ProjectorSize":5,"ProjectorMaterial":{"instanceID":-16492}}

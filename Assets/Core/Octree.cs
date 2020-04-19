@@ -28,10 +28,10 @@ namespace wanderer
             //转换成模式
             Mesh mesh = new Mesh();
             if (!string.IsNullOrEmpty(meshName))
-                mesh.name = $"mesh_{meshName}";
-            List<Vector3> vertices = new List<Vector3>();
-            List<Vector2> uvs = new List<Vector2>();
-            List<int> indexs = new List<int>();
+                mesh.name = $"{meshName}";
+            List<Vector3> vertices = ListPool<Vector3>.Get();
+            List<Vector2> uvs = ListPool<Vector2>.Get();
+            List<int> indexs = ListPool<int>.Get();
             Vector2 uv = new Vector2();
             int index = 0;
             for (int i = 0; i < triangles.Count; i++)
@@ -62,13 +62,15 @@ namespace wanderer
             mesh.SetUVs(0, uvs);
             mesh.SetTriangles(indexs, 0);
             ListPool<TriangleVertices>.Release(triangles);
+            ListPool<Vector3>.Release(vertices);
+            ListPool<Vector2>.Release(uvs);
+            ListPool<int>.Release(indexs);
             //回调
             handle.ProjectorHandle(mesh);
         }
 
         void GetTriangles(Bounds bounds, OctreeNode node, List<TriangleVertices> triangles)
         {
-            int count = node.Triangles == null ? 0 : node.Triangles.Count;
             if (bounds.Intersects(node.Bounds))
             {
                 if (node.Triangles != null && node.Triangles.Count > 0)
