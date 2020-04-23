@@ -173,7 +173,8 @@ namespace wanderer
             GUILayout.BeginVertical("HelpBox");
             _octreeConfig.Rows = EditorGUILayout.IntField("Row", _octreeConfig.Rows);
             _octreeConfig.Columns = EditorGUILayout.IntField("Column", _octreeConfig.Columns);
-            _octreeConfig.ProjectorSize = EditorGUILayout.IntField("Projector Size", _octreeConfig.ProjectorSize);
+            _octreeConfig.ProjectorSize = EditorGUILayout.FloatField("Projector Size", _octreeConfig.ProjectorSize);//
+            _octreeConfig.ProjectorInnerCircleScale = EditorGUILayout.FloatField("Projector Inner Circle Scale", _octreeConfig.ProjectorInnerCircleScale);
             _octreeConfig.ProjectorMaterial = (Material)EditorGUILayout.ObjectField("Projector Material", _octreeConfig.ProjectorMaterial, typeof(Material), false);
             GUILayout.EndVertical();
             GUILayout.Space(5);
@@ -242,6 +243,9 @@ namespace wanderer
             //projetor的大小
             float size = _octreeConfig.ProjectorSize;
             float halfSize = size * 0.5f;
+            float offsetSize = _octreeConfig.ProjectorSize * _octreeConfig.ProjectorInnerCircleScale;
+            float offsetHalfSize = offsetSize * 0.5f;
+
             //初始化 projector的数据    
             Vector3 startPos = new Vector3(_octreeConfig.MaxBounds.min.x + halfSize, _octreeConfig.MaxBounds.center.y, _octreeConfig.MaxBounds.min.z + halfSize);
             Vector3 projectorSize = new Vector3(size, _octreeConfig.MaxBounds.size.y, size);
@@ -250,8 +254,8 @@ namespace wanderer
             {
                 for (int j = 0; j < _octreeConfig.Columns; j++)
                 {
-                    float offset = i % 2 == 0 ? 0 : halfSize;
-                    Vector3 center = startPos + new Vector3(j * size + offset, 0, i * size);
+                    float offset = i % 2 == 0 ? 0 : offsetHalfSize;
+                    Vector3 center = startPos + new Vector3(j * offsetSize + offset, 0, i * halfSize * 1.5f);
                     Bounds projectorBounds = new Bounds(center, projectorSize);
                     _octreeDebug.ProjectorBounds = projectorBounds;
                     _octree.Root.Handle(projectorBounds, this, $"{i}_{j}");
@@ -341,7 +345,11 @@ namespace wanderer
         /// <summary>
         /// 投影包围盒子
         /// </summary>
-        public int ProjectorSize = 10;
+        public float ProjectorSize = 10;
+        /// <summary>
+        /// 内圆比例
+        /// </summary>
+        public float ProjectorInnerCircleScale = 0.859375f;
         /// <summary>
         /// 材质
         /// </summary>
